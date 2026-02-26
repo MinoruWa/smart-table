@@ -15,7 +15,7 @@ import {initSearching} from './components/searching.js';
 
 
 // Исходные данные используемые в render()
-const {data, ...indexes} = initData(sourceData);
+const api = initData(sourceData);
 
 /**
  * Сбор и обработка полей из таблицы
@@ -37,20 +37,21 @@ const page = parseInt(state.page ?? 1);  // номер страницы по у�
  * Перерисовка состояния таблицы при любых изменениях
  * @param {HTMLButtonElement?} action
  */
-function render(action) {
+async function render(action) {
     let state = collectState(); // состояние полей из таблицы
     
-    let result = [...data]; // копируем для последующего изменения
+    let query = {}; // копируем для последующего изменения
 // @todo: использование
 
     result = applyPagination(result, state, action);
     result = applySorting(result, state, action);
     result = applySearching(result, state, action);
     result = applyFiltering(result, state, action);
+    const { total, items } = await api.getRecords(query);
     
 
 
-    sampleTable.render(result)             
+    sampleTable.render(items)             
 
  
 return  {
@@ -94,5 +95,8 @@ const applySearching = initSearching('search');
 
 const appRoot = document.querySelector('#app');
 appRoot.appendChild(sampleTable.container);
+async function init() {
+    const indexes = await api.getIndexes()
+}
 
-render();
+init().then(render);
